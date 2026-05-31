@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع علي | Portfolio Ultra Max</title>
+    <!-- خطوط جوجل (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- مكتبة الأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --dark-bg: #050914;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            /* إخفاء المؤشر الافتراضي في الأجهزة غير اللمسية */
+            cursor: none; 
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* شاشة التحميل */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+
+        .loader-circle {
+            width: 80px;
+            height: 80px;
+            border: 4px solid var(--glass-border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: var(--primary);
+            letter-spacing: 2px;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* خلفية الجزيئات (Canvas) */
+        #canvas-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* مؤشر الماوس المخصص */
+        .cursor-dot {
+            width: 8px; height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .cursor-outline {
+            width: 40px; height: 40px;
+            border: 2px solid var(--secondary);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        /* شريط التنقل */
+        nav {
+            position: fixed;
+            top: 0; width: 100%;
+            padding: 1rem 2rem;
+            background: rgba(5, 9, 20, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-decoration: none;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px; left: 0; width: 0%; height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+            box-shadow: 0 0 8px var(--primary);
+        }
+
+        .nav-links a:hover { color: var(--primary); }
+        .nav-links a:hover::after { width: 100%; }
+
+        /* الرأس - Header */
+        header {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            padding-top: 60px;
+        }
+
+        .profile-img-container {
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            padding: 4px;
+            margin-bottom: 2rem;
+            box-shadow: var(--neon-shadow);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .profile-img {
+            width: 100%; height: 100%;
+            background-color: var(--dark-bg);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            color: var(--primary);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        h1 {
+            font-size: clamp(3rem, 5vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 1rem;
+            background: linear-gradient(to left, #fff, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
+        }
+
+        .typing-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass-bg);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+        }
+
+        .typing-text {
+            font-size: 1.5rem;
+            color: #e2e8f0;
+            min-height: 35px;
+            font-weight: 600;
+        }
+
+        .cursor {
+            width: 3px; height: 1.5rem;
+            background: var(--primary);
+            animation: blink 0.7s infinite;
+        }
+
+        /* حاوية الأقسام */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 6rem 2rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 4rem;
+            color: #fff;
+            position: relative;
+        }
+
+        .section-title span {
+            color: var(--primary);
+        }
+
+        /* شبكة البطاقات المتقدمة */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        /* تأثير التوهج المتقدم للبطاقات */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0,242,254,0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .glass-card.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-15px);
+            border-color: rgba(0, 242, 254, 0.4);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 242, 254, 0.1);
+        }
+
+        .glass-card:hover::before { opacity: 1; }
+
+        .glass-card i {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        .glass-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: #f8fafc;
+        }
+
+        .glass-card p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        /* قسم التواصل */
+        .contact-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .contact-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .contact-btn:hover::before { left: 100%; }
+
+        .contact-btn:hover {
+            background: var(--primary);
+            color: var(--dark-bg);
+            box-shadow: 0 0 25px var(--primary);
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+        /* التذييل */
+        footer {
+            text-align: center;
+            padding: 2.5rem;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            color: #64748b;
+            margin-top: 5rem;
+        }
+
+        /* التجاوب مع الهواتف */
+        @media (max-width: 768px) {
+            .nav-links { display: none; } /* إخفاء الروابط في الموبايل للتبسيط */
+            .cursor-dot, .cursor-outline { display: none; } /* إخفاء المؤشر في الموبايل */
+            * { cursor: auto !important; }
+            h1 { font-size: 2.5rem; }
+            .section-title { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شاشة التحميل -->
+    <div id="loader">
+        <div class="loader-circle"></div>
+        <div class="loader-text">جاري تهيئة النظام...</div>
+    </div>
+
+    <!-- مؤشر الماوس المخصص (يظهر فقط في الكمبيوتر) -->
+    <div class="cursor-dot" id="cursor-dot"></div>
+    <div class="cursor-outline" id="cursor-outline"></div>
+
+    <!-- خلفية الجزيئات التفاعلية -->
+    <canvas id="canvas-bg"></canvas>
+
+    <!-- شريط التنقل -->
+    <nav>
+        <a href="#" class="logo">علي <span>.</span></a>
+        <ul class="nav-links">
+            <li><a href="#home">الرئيسية</a></li>
+            <li><a href="#skills">المهارات</a></li>
+            <li><a href="#projects">المشاريع</a></li>
+            <li><a href="#contact">التواصل</a></li>
+        </ul>
+    </nav>
+
+    <!-- القسم الرئيسي -->
+    <header id="home">
+        <div class="profile-img-container">
+            <div class="profile-img">
+                <i class="fas fa-user-astronaut"></i>
+            </div>
+        </div>
+        <h1>مرحباً، أنا علي</h1>
+        <div class="typing-container">
+            <div class="typing-text" id="typing"></div>
+            <div class="cursor"></div>
+        </div>
+    </header>
+
+    <!-- قسم المهارات -->
+    <div class="container" id="skills">
+        <h2 class="section-title">ترسانة <span>المهارات</span></h2>
+        <div class="grid">
+            <div class="glass-card hidden">
+                <i class="fas fa-laptop-code"></i>
+                <h3>تطوير الويب</h3>
+                <p>بناء واجهات عصرية ومتجاوبة بالكامل باستخدام أحدث تقنيات HTML, CSS, JavaScript مع تركيز على تجربة المستخدم (UX).</p>
+            </div>
+            <div class="glass-card hidden">
+                <i class="fas fa-gamepad"></i>
+                <h3>برمجة الألعاب</h3>
+                <p>ابتكار ألعاب ممتعة وتفاعلية لمتصفحات الهواتف والكمبيوتر، مع هندسة آليات تحكم سلسة وميكانيكا لعب جذابة.</p>
+            </div>
+            <div class="glass-card hidden">
+                <i class="fas fa-microchip"></i>
+                <h3>أردوينو وروبوتيك</h3>
+                <p>برمجة المتحكمات الدقيقة، دمج الحساسات (Ultrasonic, IR)، وتحويل الأفكار البرمجية إلى أنظمة إلكترونية حقيقية تتفاعل مع الواقع.</p>
+            </div>
+        </div>
+
+        <!-- قسم المشاريع -->
+        <h2 class="section-title" style="margin-top: 7rem;" id="projects">أبرز <span>المشاريع</span></h2>
+        <div class="grid">
+            <div class="glass-card hidden">
+                <i class="fas fa-space-shuttle"></i>
+                <h3>لعبة Alibooss30</h3>
+                <p>لعبة موبايل تم تطويرها من الصفر، تتميز برسوميات مخصصة، واجهة مستخدم محسّنة، وآليات لعب تضمن المتعة والتحدي.</p>
+            </div>
+            <div class="glass-card hidden">
+                <i class="fas fa-robot"></i>
+                <h3>أنظمة الأردوينو</h3>
+                <p>مشاريع ذكية تتضمن أنظمة استشعار المسافات، التحكم في الإضاءة المتزامنة، وحل التحديات البرمجية في بيئة C++ الخاصة بالأردوينو.</p>
+            </div>
+        </div>
+
+        <!-- قسم التواصل -->
+        <h2 class="section-title" style="margin-top: 7rem;" id="contact">قنوات <span>الاتصال</span></h2>
+        <div class="contact-grid hidden glass-card" style="padding: 4rem 2rem; border-radius: 30px;">
+            <a href="mailto:hammaz.aliboss@gmail.com" class="contact-btn">
+                <i class="fas fa-envelope"></i> إرسال إيميل
+            </a>
+            <a href="https://wa.me/213559855591" class="contact-btn" target="_blank">
+                <i class="fab fa-whatsapp"></i> واتساب
+            </a>
+            <a href="https://www.instagram.com/h.aiboss30/#" class="contact-btn" target="_blank">
+                <i class="fab fa-instagram"></i> إنستغرام
+            </a>
+            <a href="https://www.facebook.com/me/" class="contact-btn" target="_blank">
+                <i class="fab fa-facebook-f"></i> فيسبوك
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>تم التصميم والبرمجة بشغف 💙 بواسطة <strong>علي</strong> &copy; 2026</p>
+    </footer>
+
+    <script>
+        // --- 1. إزالة شاشة التحميل ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => { loader.style.display = 'none'; }, 800);
+            }, 1500); // عرض الشاشة لمدة 1.5 ثانية لإضافة طابع احترافي
+        });
+
+        // --- 2. مؤشر الماوس المخصص ---
+        const cursorDot = document.getElementById('cursor-dot');
+        const cursorOutline = document.getElementById('cursor-outline');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // تحديث موقع النقطة الداخلية فورا
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // تحديث الدائرة الخارجية بتأخير بسيط لتأثير الحركة
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // تكبير الدائرة عند المرور فوق الأزرار والروابط
+        document.querySelectorAll('a, .glass-card').forEach(link => {
+            link.addEventListener('mouseenter', () => {
+                cursorOutline.style.width = '60px';
+                cursorOutline.style.height = '60px';
+                cursorOutline.style.backgroundColor = 'rgba(0, 242, 254, 0.1)';
+            });
+            link.addEventListener('mouseleave', () => {
+                cursorOutline.style.width = '40px';
+                cursorOutline.style.height = '40px';
+                cursorOutline.style.backgroundColor = 'transparent';
+            });
+        });
+
+        // --- 3. تأثير الكتابة التلقائية ---
+        const textArray = ["مطور ألعاب 🎮", "مبرمج ويب 💻", "خبير أردوينو 🤖", "مبتكر حلول 💡"];
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typingElement = document.getElementById("typing");
+
+        function type() {
+            const currentText = textArray[textIndex];
+            
+            if (isDeleting) {
+                typingElement.innerText = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingElement.innerText = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 40 : 100;
+
+            if (!isDeleting && charIndex === currentText.length) {
+                typeSpeed = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % textArray.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+        setTimeout(type, 2000); // البدء بعد اختفاء شاشة التحميل
+
+        // --- 4. تأثير الظهور عند التمرير ---
+        const observerOptions = { threshold: 0.15, rootMargin: "0px 0px -50px 0px" };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('show');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.hidden').forEach(el => observer.observe(el));
+
+        // --- 5. خلفية الجزيئات التفاعلية (Canvas Particles) ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particlesArray = [];
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        });
+
+        let mouse = { x: null, y: null, radius: 150 };
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x;
+                this.y = y;
+                this.directionX = directionX;
+                this.directionY = directionY;
+                this.size = size;
+                this.color = color;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            update() {
+                if (this.x > canvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > canvas.height || this.y < 0) this.directionY = -this.directionY;
+
+                // التفاعل مع الماوس
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < mouse.radius) {
+                    if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 1;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 1;
+                    if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 1;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 1;
+                }
+
+                this.x += this.directionX;
+                this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (canvas.height * canvas.width) / 15000;
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 1) - 0.5;
+                let directionY = (Math.random() * 1) - 0.5;
+                let color = 'rgba(0, 242, 254, 0.5)';
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+            }
+        }
+
+        function connectParticles() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                                 + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                        let opacityValue = 1 - (distance / 10000);
+                        ctx.strokeStyle = 'rgba(0, 242, 254,' + opacityValue + ')';
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+            }
+            connectParticles();
+        }
+
+        initParticles();
+        animateParticles();
+    </script>
+</body>
+</html>
